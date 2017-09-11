@@ -9,7 +9,7 @@
   "author": "Bitmovin",
   "license": "ISC",
   "devDependencies": {
-    "bitmovin-player": "^7.0.0",
+    "bitmovin-player-ui": "^2.9.0",
     "browser-sync": "^2.18.8",
     "browserify": "^14.1.0",
     "del": "^2.2.2",
