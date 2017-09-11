@@ -57,7 +57,10 @@ export class Ambisonics {
 
   private initialize() {
     if (this.config.autoSelectAmbisonicAudio) {
-      const ambisonicAudioTrack = this.getFirstAmbisonicTrack();
+      const audioTracks = this.player.getAvailableAudio();
+      const ambisonicAudioTrack = Ambisonics.findFirstAmbisonicTrack(audioTracks);
+
+      console.log(audioTracks, ambisonicAudioTrack);
 
       if (ambisonicAudioTrack) {
         this.player.setAudio(ambisonicAudioTrack.id);
@@ -81,10 +84,7 @@ export class Ambisonics {
     return false;
   }
 
-  private getFirstAmbisonicTrack(): AudioTrack {
-    const audioTracks = this.player.getAvailableAudio();
-    console.log(audioTracks);
-
+  private static findFirstAmbisonicTrack(audioTracks: AudioTrack[]): AudioTrack {
     // We iterate over all available audio tracks and check their roles to see if one is an Ambisonics track.
     for (const audioTrack of audioTracks) {
       if (Ambisonics.isAmbisonicTrack(audioTrack)) {
