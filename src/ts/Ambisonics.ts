@@ -1,7 +1,7 @@
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 import AudioTrack = bitmovin.PlayerAPI.AudioTrack;
 import AudioChangedEvent = bitmovin.PlayerAPI.AudioChangedEvent;
-import {Omnitone} from 'omnitone';
+import {FOARenderer, Omnitone, RenderingMode} from 'omnitone';
 
 /**
  * Temporary type definition for the {@link bitmovin.PlayerAPI.AudioTrack.role} property.
@@ -10,6 +10,14 @@ import {Omnitone} from 'omnitone';
 interface AudioTrackRole {
   schemeIdUri: string;
   value: string;
+}
+
+/**
+ * Temporary type definition for the {@link bitmovin.PlayerAPI.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE} event object.
+ * TODO remove once bitmovin-player-ui types have been updated with the event
+ */
+interface VRViewingDirectionChangeEvent extends PlayerEvent {
+  direction: bitmovin.PlayerAPI.VR.ViewingDirection;
 }
 
 export interface AmbisonicsConfig {
@@ -23,6 +31,7 @@ export class Ambisonics {
 
   private player: bitmovin.PlayerAPI;
   private config: AmbisonicsConfig;
+  private foaRenderer: FOARenderer;
 
   constructor(player: bitmovin.PlayerAPI, config: AmbisonicsConfig = {}) {
     this.player = player;
@@ -89,29 +98,57 @@ export class Ambisonics {
   }
 
   private enableAmbisonics(): void {
-    const audioContext = new AudioContext();
-    const audioSource = audioContext.createMediaElementSource((<any>this.player).getVideoElement());
+    // Create the FOARenderer only the first time it is required, then we reuse it
+    if (!this.foaRenderer) {
+      const audioContext = new AudioContext();
+      const audioSource = audioContext.createMediaElementSource((<any>this.player).getVideoElement());
 
-    const foaRenderer = Omnitone.createFOARenderer(audioContext, {
-      // hrirPathList: [
-      //   'https://cdn.rawgit.com/GoogleChrome/omnitone/master/build/resources/omnitone-foa-1.wav',
-      //   'https://cdn.rawgit.com/GoogleChrome/omnitone/master/build/resources/omnitone-foa-2.wav',
-      // ],
-      // The example audio is in the FuMa ordering (W,X,Y,Z). So remap the
-      // channels to the ACN format.
-      // channelMap: [0, 3, 1, 2]
-    });
+      this.foaRenderer = Omnitone.createFOARenderer(audioContext, {
+        HRIRUrl: 'https://cdn.rawgit.com/GoogleChrome/omnitone/962089ca/build/resources/sh_hrir_o_1.wav',
+        // channelMap: [0, 3, 1, 2],
+      });
 
-    foaRenderer.initialize().then(function () {
-      audioSource.connect(foaRenderer.input);
-      foaRenderer.output.connect(audioContext.destination);
-    }, function (onInitializationError) {
-      console.error(onInitializationError);
-    });
+      this.foaRenderer.initialize().then(function() {
+        audioSource.connect(this.foaRenderer.input);
+        this.foaRenderer.output.connect(audioContext.destination);
+      }, function(onInitializationError) {
+        console.error(onInitializationError);
+      });
+    } else {
+      // Re-enable Ambisonics processing (in case it has been disabled earlier)
+      this.foaRenderer.setRenderingMode(RenderingMode.AMBISONIC);
+    }
+
+    this.player.addEventHandler(this.player.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE,
+      this.onPlayerVrViewingDirectionChange);
   }
 
   private disableAmbisonics(): void {
+    // Disable rotation handling
+    this.player.removeEventHandler(this.player.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE,
+      this.onPlayerVrViewingDirectionChange);
 
+    // Disable Ambisonics processing
+    this.foaRenderer.setRenderingMode(RenderingMode.BYPASS);
+  }
+
+  private getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection): number[] {
+    // yaw/pitch/roll to matrix conversion: http://planning.cs.uiuc.edu/node102.html
+    const alpha = direction.yaw; // z-axis
+    const beta = direction.pitch; // y-axis
+    const gamma = direction.roll; // x-axis
+    const sinAlpha = Math.sin(alpha);
+    const cosAlpha = Math.cos(alpha);
+    const sinBeta = Math.sin(beta);
+    const cosBeta = Math.cos(beta);
+    const sinGamma = Math.sin(gamma);
+    const cosGamma = Math.cos(gamma);
+
+    return [
+    cosAlpha * cosBeta, cosAlpha * sinBeta * sinGamma - sinAlpha * cosGamma, cosAlpha * sinBeta * cosGamma + sinAlpha * sinGamma,
+    sinAlpha * cosBeta, sinAlpha * sinBeta * sinGamma + cosAlpha * cosGamma, sinAlpha * sinBeta * cosGamma - cosAlpha * sinGamma,
+    -sinBeta, cosBeta * sinGamma, cosBeta * cosGamma,
+    ];
   }
 
   private onPlayerReady = (event: PlayerEvent) => {
@@ -130,4 +167,9 @@ export class Ambisonics {
       this.disableAmbisonics();
     }
   };
+
+  private onPlayerVrViewingDirectionChange = (event: VRViewingDirectionChangeEvent) => {
+    console.log('VRViewingDirectionChangeEvent', event);
+    this.foaRenderer.setRotationMatrix(this.getRotationMatrix(event.direction));
+  }
 }
