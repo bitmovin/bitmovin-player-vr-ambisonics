@@ -69,32 +69,6 @@ export class Ambisonics {
     }
   }
 
-  private static isAmbisonicTrack(audioTrack: AudioTrack): boolean {
-    const audioTrackRoles: AudioTrackRole[] = (<any>audioTrack).role;
-
-    if (audioTrackRoles && audioTrackRoles.length > 0) {
-      for (let audioTrackRole of audioTrackRoles) {
-        if (audioTrackRole.schemeIdUri === Ambisonics.VR_SCHEME_ID_URI
-          && audioTrackRole.value === Ambisonics.VR_SCHEME_VALUE_FOA) {
-          return true;
-        }
-      }
-    }
-
-    return false;
-  }
-
-  private static findFirstAmbisonicTrack(audioTracks: AudioTrack[]): AudioTrack {
-    // We iterate over all available audio tracks and check their roles to see if one is an Ambisonics track.
-    for (const audioTrack of audioTracks) {
-      if (Ambisonics.isAmbisonicTrack(audioTrack)) {
-        return audioTrack;
-      }
-    }
-
-    return null;
-  }
-
   private enable(): void {
     // Create the FOARenderer only the first time it is required, then we reuse it
     if (!this.foaRenderer) {
@@ -128,6 +102,32 @@ export class Ambisonics {
 
     // Disable Ambisonics processing
     this.foaRenderer.setRenderingMode(RenderingMode.BYPASS);
+  }
+
+  private static isAmbisonicTrack(audioTrack: AudioTrack): boolean {
+    const audioTrackRoles: AudioTrackRole[] = (<any>audioTrack).role;
+
+    if (audioTrackRoles && audioTrackRoles.length > 0) {
+      for (let audioTrackRole of audioTrackRoles) {
+        if (audioTrackRole.schemeIdUri === Ambisonics.VR_SCHEME_ID_URI
+          && audioTrackRole.value === Ambisonics.VR_SCHEME_VALUE_FOA) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  private static findFirstAmbisonicTrack(audioTracks: AudioTrack[]): AudioTrack {
+    // We iterate over all available audio tracks and check their roles to see if one is an Ambisonics track.
+    for (const audioTrack of audioTracks) {
+      if (Ambisonics.isAmbisonicTrack(audioTrack)) {
+        return audioTrack;
+      }
+    }
+
+    return null;
   }
 
   private static getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection): number[] {
