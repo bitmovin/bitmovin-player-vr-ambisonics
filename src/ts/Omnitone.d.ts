@@ -19,7 +19,8 @@ declare module 'omnitone' {
 
   interface FOARendererOptions {
     channelMap?: number[];
-    hrirPathList?: string[];
+    HRIRUrl?: string;
+    postGainDB?: number;
     renderingMode?: RenderingMode;
   }
 
@@ -28,8 +29,7 @@ declare module 'omnitone' {
     initialize(): Promise<void>;
     setRenderingMode(renderingMode: RenderingMode): void;
     setChannelMap(channelMap: number[]): void;
-    setRotationMatrix3(matrix: number[]): void;
-    setRotationMatrix4(matrix: number[]): void;
+    setRotationMatrix(matrix: number[]): void;
     setRotationMatrixFromCamera(cameraMatrix: object): void;
     input: GainNode;
     output: GainNode;
