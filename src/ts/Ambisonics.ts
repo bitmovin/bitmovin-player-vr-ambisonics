@@ -148,9 +148,15 @@ export class Ambisonics {
     const cosGamma = Math.cos(gamma);
 
     return [
-    cosAlpha * cosBeta, cosAlpha * sinBeta * sinGamma - sinAlpha * cosGamma, cosAlpha * sinBeta * cosGamma + sinAlpha * sinGamma,
-    sinAlpha * cosBeta, sinAlpha * sinBeta * sinGamma + cosAlpha * cosGamma, sinAlpha * sinBeta * cosGamma - cosAlpha * sinGamma,
-    -sinBeta, cosBeta * sinGamma, cosBeta * cosGamma,
+      cosAlpha * cosBeta,
+      cosAlpha * sinBeta * sinGamma - sinAlpha * cosGamma,
+      cosAlpha * sinBeta * cosGamma + sinAlpha * sinGamma,
+      sinAlpha * cosBeta,
+      sinAlpha * sinBeta * sinGamma + cosAlpha * cosGamma,
+      sinAlpha * sinBeta * cosGamma - cosAlpha * sinGamma,
+      -sinBeta,
+      cosBeta * sinGamma,
+      cosBeta * cosGamma,
     ];
   }
 
