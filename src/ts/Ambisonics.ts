@@ -130,10 +130,16 @@ export class Ambisonics {
   }
 
   private getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection): number[] {
-    // yaw/pitch/roll to matrix conversion: http://planning.cs.uiuc.edu/node102.html
-    const alpha = direction.yaw; // z-axis
-    const beta = direction.pitch; // y-axis
-    const gamma = direction.roll; // x-axis
+    // Convert degrees to radians
+    const degToRad = Math.PI / 180;
+    const yaw = direction.yaw * degToRad;
+    const pitch = direction.pitch * degToRad;
+    const roll = direction.roll * degToRad;
+
+    // Convert yaw/pitch/roll to matrix: http://planning.cs.uiuc.edu/node102.html
+    const alpha = yaw; // z-axis
+    const beta = pitch; // y-axis
+    const gamma = roll; // x-axis
     const sinAlpha = Math.sin(alpha);
     const cosAlpha = Math.cos(alpha);
     const sinBeta = Math.sin(beta);
@@ -166,7 +172,7 @@ export class Ambisonics {
   };
 
   private onPlayerVrViewingDirectionChange = (event: VRViewingDirectionChangeEvent) => {
-    console.log('VRViewingDirectionChangeEvent', event);
+    console.log('VRViewingDirectionChange', event.direction);
     this.foaRenderer.setRotationMatrix(this.getRotationMatrix(event.direction));
   }
 }
