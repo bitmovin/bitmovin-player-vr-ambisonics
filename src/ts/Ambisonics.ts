@@ -50,7 +50,7 @@ export class Ambisonics {
   }
 
   public release(): void {
-    this.disableAmbisonics();
+    this.disable();
     this.player.removeEventHandler(this.player.EVENT.ON_READY, this.onPlayerReady);
     this.player.removeEventHandler(this.player.EVENT.ON_AUDIO_CHANGED, this.onPlayerAudioChanged);
   }
@@ -95,7 +95,7 @@ export class Ambisonics {
     return null;
   }
 
-  private enableAmbisonics(): void {
+  private enable(): void {
     // Create the FOARenderer only the first time it is required, then we reuse it
     if (!this.foaRenderer) {
       const audioContext = new AudioContext();
@@ -121,7 +121,7 @@ export class Ambisonics {
       this.onPlayerVrViewingDirectionChange);
   }
 
-  private disableAmbisonics(): void {
+  private disable(): void {
     // Disable rotation handling
     this.player.removeEventHandler(this.player.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE,
       this.onPlayerVrViewingDirectionChange);
@@ -171,10 +171,10 @@ export class Ambisonics {
 
     if (!isOldAudioTrackAmbisonic && isNewAudioTrackAmbisonic) {
       console.debug('Activated Ambisonics audio', event.targetAudio);
-      this.enableAmbisonics();
+      this.enable();
     } else if (isOldAudioTrackAmbisonic && !isNewAudioTrackAmbisonic) {
       console.debug('Deactivated Ambisonics audio', event.targetAudio);
-      this.disableAmbisonics();
+      this.disable();
     }
   };
 
