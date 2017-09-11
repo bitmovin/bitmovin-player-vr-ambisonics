@@ -108,10 +108,10 @@ export class Ambisonics {
         // channelMap: [0, 3, 1, 2],
       });
 
-      this.foaRenderer.initialize().then(function() {
+      this.foaRenderer.initialize().then(() => {
         audioSource.connect(this.foaRenderer.input);
         this.foaRenderer.output.connect(audioContext.destination);
-      }, function(onInitializationError) {
+      }, (onInitializationError) => {
         console.error(onInitializationError);
       });
     } else {
