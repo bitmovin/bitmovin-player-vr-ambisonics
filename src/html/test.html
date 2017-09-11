@@ -75,7 +75,9 @@
 
   var ambisonics = new bitmovin.player.vr.Ambisonics(player);
 
-  player.setup(conf).then(function() {
+  player.setup(conf).then(function(player) {
+    // Update the VR viewport direction 30 times a second (instead of the default 4 times)
+    player.vr.setViewingDirectionChangeEventInterval(1 / 30);
     console.log('player loaded');
   }, function(reason) {
     console.error('player setup failed');
