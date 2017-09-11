@@ -41,9 +41,6 @@ export class Ambisonics {
 
     player.addEventHandler(player.EVENT.ON_READY, this.onPlayerReady);
     player.addEventHandler(player.EVENT.ON_AUDIO_CHANGED, this.onPlayerAudioChanged);
-    player.addEventHandler(player.EVENT.ON_PLAYING, () => {
-      this.enableAmbisonics();
-    });
 
     // In case this instance was created after a source has been loaded into the player, we do not wait for the next
     // ON_SOURCE_LOADED event but initialize directly.
@@ -161,7 +158,7 @@ export class Ambisonics {
 
     if (!isOldAudioTrackAmbisonic && isNewAudioTrackAmbisonic) {
       console.debug('Activated Ambisonics audio', event.targetAudio);
-      // this.enableAmbisonics();
+      this.enableAmbisonics();
     } else if (isOldAudioTrackAmbisonic && !isNewAudioTrackAmbisonic) {
       console.debug('Deactivated Ambisonics audio', event.targetAudio);
       this.disableAmbisonics();
