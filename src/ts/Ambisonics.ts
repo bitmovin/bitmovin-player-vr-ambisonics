@@ -56,7 +56,7 @@ export class Ambisonics {
   }
 
   private initialize() {
-    if (this.config.autoSelectAmbisonicAudio) {
+    if (Ambisonics.isVrContent(this.player) && this.config.autoSelectAmbisonicAudio) {
       const audioTracks = this.player.getAvailableAudio();
       const ambisonicAudioTrack = Ambisonics.findFirstAmbisonicTrack(audioTracks);
 
@@ -70,6 +70,11 @@ export class Ambisonics {
   }
 
   private enable(): void {
+    if (!Ambisonics.isVrContent(this.player)) {
+      // Don't enable Ambisonics for non-VR content because it does not make any sense
+      return;
+    }
+
     // Create the FOARenderer only the first time it is required, then we reuse it
     if (!this.foaRenderer) {
       const audioContext = new AudioContext();
@@ -102,6 +107,10 @@ export class Ambisonics {
 
     // Disable Ambisonics processing
     this.foaRenderer.setRenderingMode(RenderingMode.BYPASS);
+  }
+
+  private static isVrContent(player: bitmovin.PlayerAPI): boolean {
+    return player.getVRStatus().contentType !== 'none';
   }
 
   private static isAmbisonicTrack(audioTrack: AudioTrack): boolean {
