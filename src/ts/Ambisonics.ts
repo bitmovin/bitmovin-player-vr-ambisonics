@@ -50,6 +50,7 @@ export class Ambisonics {
   }
 
   public release(): void {
+    this.disableAmbisonics();
     this.player.removeEventHandler(this.player.EVENT.ON_READY, this.onPlayerReady);
     this.player.removeEventHandler(this.player.EVENT.ON_AUDIO_CHANGED, this.onPlayerAudioChanged);
   }
