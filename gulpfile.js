@@ -29,7 +29,6 @@ var paths = {
   target: {
     html: './dist',
     js: './dist/js',
-    jsframework: './dist/js/framework',
   }
 };
 
@@ -115,7 +114,7 @@ gulp.task('browserify', function() {
 
   // Compile output JS file
   var stream = browserifyBundle
-  .pipe(source('bitmovinplayer-analytics-conviva.js'))
+  .pipe(source('bitmovinplayer-vr-ambisonics.js'))
   .pipe(buffer())
   .pipe(gulp.dest(paths.target.js));
 
@@ -128,7 +127,7 @@ gulp.task('browserify', function() {
     .pipe(gulp.dest(paths.target.js));
   }
 
-  stream.pipe(browserSync.reload({stream: true}));
+  return stream.pipe(browserSync.reload({stream: true}));
 });
 
 // Builds the complete project from the sources into the target directory
@@ -172,27 +171,11 @@ gulp.task('serve', function() {
       server: {
         baseDir: [paths.target.html],
         index: 'test.html',
-        routes: {
-          '/conviva': './conviva'
-        }
       }
     });
 
-    gulp.watch(paths.source.html, ['html']).on('change', browserSync.reload);
+    gulp.watch(paths.source.html, ['html']).on('change', function() { runSequence('html', browserSync.reload); });
     catchBrowserifyErrors = true;
     gulp.watch(paths.source.ts, ['browserify']);
   });
-});
-
-// Prepares the project for a npm release
-// After running this task, the project can be published to npm or installed from this folder.
-gulp.task('npm-prepare', ['build-prod'], function() {
-  // https://www.npmjs.com/package/gulp-typescript
-  var tsProject = ts.createProject('tsconfig.json');
-  var tsResult = gulp.src(paths.source.ts).pipe(tsProject());
-
-  return merge([
-    tsResult.dts.pipe(gulp.dest(paths.target.jsframework)),
-    tsResult.js.pipe(gulp.dest(paths.target.jsframework))
-  ]);
 });
