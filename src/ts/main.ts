@@ -1,3 +1,5 @@
+/// <reference path='../../node_modules/bitmovin-player-ui/src/ts/player.d.ts' />
+
 import {Ambisonics} from './Ambisonics';
 
 // Export Ambisonics integration to global namespace
