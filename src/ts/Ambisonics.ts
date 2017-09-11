@@ -1,6 +1,7 @@
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 import AudioTrack = bitmovin.PlayerAPI.AudioTrack;
 import AudioChangedEvent = bitmovin.PlayerAPI.AudioChangedEvent;
+import {Omnitone} from 'omnitone';
 
 /**
  * Temporary type definition for the {@link bitmovin.PlayerAPI.AudioTrack.role} property.
@@ -31,6 +32,9 @@ export class Ambisonics {
 
     player.addEventHandler(player.EVENT.ON_READY, this.onPlayerReady);
     player.addEventHandler(player.EVENT.ON_AUDIO_CHANGED, this.onPlayerAudioChanged);
+    player.addEventHandler(player.EVENT.ON_PLAYING, () => {
+      this.enableAmbisonics();
+    });
 
     // In case this instance was created after a source has been loaded into the player, we do not wait for the next
     // ON_SOURCE_LOADED event but initialize directly.
@@ -84,6 +88,32 @@ export class Ambisonics {
     return null;
   }
 
+  private enableAmbisonics(): void {
+    const audioContext = new AudioContext();
+    const audioSource = audioContext.createMediaElementSource((<any>this.player).getVideoElement());
+
+    const foaRenderer = Omnitone.createFOARenderer(audioContext, {
+      // hrirPathList: [
+      //   'https://cdn.rawgit.com/GoogleChrome/omnitone/master/build/resources/omnitone-foa-1.wav',
+      //   'https://cdn.rawgit.com/GoogleChrome/omnitone/master/build/resources/omnitone-foa-2.wav',
+      // ],
+      // The example audio is in the FuMa ordering (W,X,Y,Z). So remap the
+      // channels to the ACN format.
+      // channelMap: [0, 3, 1, 2]
+    });
+
+    foaRenderer.initialize().then(function () {
+      audioSource.connect(foaRenderer.input);
+      foaRenderer.output.connect(audioContext.destination);
+    }, function (onInitializationError) {
+      console.error(onInitializationError);
+    });
+  }
+
+  private disableAmbisonics(): void {
+
+  }
+
   private onPlayerReady = (event: PlayerEvent) => {
     this.initialize();
   };
@@ -94,8 +124,10 @@ export class Ambisonics {
 
     if (!isOldAudioTrackAmbisonic && isNewAudioTrackAmbisonic) {
       console.debug('Activated Ambisonics audio', event.targetAudio);
+      // this.enableAmbisonics();
     } else if (isOldAudioTrackAmbisonic && !isNewAudioTrackAmbisonic) {
       console.debug('Deactivated Ambisonics audio', event.targetAudio);
+      this.disableAmbisonics();
     }
   };
 }
