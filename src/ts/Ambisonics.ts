@@ -66,7 +66,7 @@ export class Ambisonics {
     }
   }
 
-  private isAmbisonicTrack(audioTrack: AudioTrack): boolean {
+  private static isAmbisonicTrack(audioTrack: AudioTrack): boolean {
     const audioTrackRoles: AudioTrackRole[] = (<any>audioTrack).role;
 
     if (audioTrackRoles && audioTrackRoles.length > 0) {
@@ -87,7 +87,7 @@ export class Ambisonics {
 
     // We iterate over all available audio tracks and check their roles to see if one is an Ambisonics track.
     for (const audioTrack of audioTracks) {
-      if (this.isAmbisonicTrack(audioTrack)) {
+      if (Ambisonics.isAmbisonicTrack(audioTrack)) {
         return audioTrack;
       }
     }
@@ -130,7 +130,7 @@ export class Ambisonics {
     this.foaRenderer.setRenderingMode(RenderingMode.BYPASS);
   }
 
-  private getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection): number[] {
+  private static getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection): number[] {
     // Convert degrees to radians
     const degToRad = Math.PI / 180;
     const yaw = direction.yaw * degToRad;
@@ -166,8 +166,8 @@ export class Ambisonics {
   };
 
   private onPlayerAudioChanged = (event: AudioChangedEvent) => {
-    const isOldAudioTrackAmbisonic = this.isAmbisonicTrack(event.sourceAudio);
-    const isNewAudioTrackAmbisonic = this.isAmbisonicTrack(event.targetAudio);
+    const isOldAudioTrackAmbisonic = Ambisonics.isAmbisonicTrack(event.sourceAudio);
+    const isNewAudioTrackAmbisonic = Ambisonics.isAmbisonicTrack(event.targetAudio);
 
     if (!isOldAudioTrackAmbisonic && isNewAudioTrackAmbisonic) {
       console.debug('Activated Ambisonics audio', event.targetAudio);
@@ -180,6 +180,6 @@ export class Ambisonics {
 
   private onPlayerVrViewingDirectionChange = (event: VRViewingDirectionChangeEvent) => {
     console.log('VRViewingDirectionChange', event.direction);
-    this.foaRenderer.setRotationMatrix(this.getRotationMatrix(event.direction));
+    this.foaRenderer.setRotationMatrix(Ambisonics.getRotationMatrix(event.direction));
   }
 }
