@@ -19,6 +19,7 @@ var del = require('del');
 var runSequence = require('run-sequence');
 var browserSync = require('browser-sync');
 var merge = require('merge2');
+var nativeTslint = require('tslint');
 
 var paths = {
   source: {
@@ -48,40 +49,13 @@ gulp.task('clean', del.bind(null, [paths.target.html]));
 
 // TypeScript linting
 gulp.task('lint-ts', function() {
+  // The program is required for type checking rules to work: https://palantir.github.io/tslint/usage/type-checking/
+  var program = nativeTslint.Linter.createProgram("./tsconfig.json");
+
   return gulp.src(paths.source.ts)
   .pipe(tslint({
     formatter: 'verbose',
-    configuration: {
-      rules: {
-        'class-name': true,
-        'comment-format': [true, 'check-space'],
-        'indent': [true, 'spaces'],
-        'no-duplicate-variable': true,
-        'no-eval': true,
-        'no-internal-module': true,
-        'no-trailing-whitespace': true,
-        'no-var-keyword': false,
-        'one-line': [true, 'check-open-brace', 'check-whitespace'],
-        'quotemark': [true, 'single'],
-        'semicolon': false,
-        'triple-equals': [true, 'allow-null-check'],
-        'typedef-whitespace': [true, {
-          'call-signature': 'nospace',
-          'index-signature': 'nospace',
-          'parameter': 'nospace',
-          'property-declaration': 'nospace',
-          'variable-declaration': 'nospace'
-        }],
-        'variable-name': [true, 'ban-keywords'],
-        'whitespace': [true,
-          'check-branch',
-          'check-decl',
-          'check-operator',
-          'check-separator',
-          'check-type'
-        ]
-      }
-    }
+    program: program,
   }))
   .pipe(tslint.report({
     // Print just the number of errors (instead of printing all errors again)
