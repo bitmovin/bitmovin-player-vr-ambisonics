@@ -21,6 +21,10 @@ interface VRViewingDirectionChangeEvent extends PlayerEvent {
 }
 
 export interface AmbisonicsConfig {
+  /**
+   * Tells if the first Ambisonic audio track, if existing, should be automatically selected for a VR source.
+   * Default: true
+   */
   autoSelectAmbisonicAudio?: boolean;
 }
 
