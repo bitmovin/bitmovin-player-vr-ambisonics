@@ -93,7 +93,8 @@ export class Ambisonics {
 
       this.foaRenderer = Omnitone.createFOARenderer(audioContext, {
         HRIRUrl: 'https://cdn.rawgit.com/GoogleChrome/omnitone/962089ca/build/resources/sh_hrir_o_1.wav',
-        // channelMap: [0, 3, 1, 2],
+        // Remap channels from FuMa ordering (W,X,Y,Z) ACN
+        channelMap: [0, 3, 1, 2],
       });
 
       this.foaRenderer.initialize().then(() => {
