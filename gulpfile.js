@@ -29,7 +29,7 @@ var paths = {
   },
   target: {
     html: './dist',
-    js: './dist/js',
+    js: './dist',
   }
 };
 
