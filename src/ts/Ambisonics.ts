@@ -152,10 +152,17 @@ export class Ambisonics {
     const pitch = direction.pitch * degToRad;
     const roll = direction.roll * degToRad;
 
+    // The Bitmovin player assumes 0 degree at the left of the equirectangular projection,
+    // while the source assumes it in the center, so we must correct our angles for the
+    // Ambisonics audio to match the VR video viewport.
+    const correctedYaw = yaw + Math.PI;
+    const correctedPitch = pitch;
+    const correctedRoll = roll;
+
     // Convert yaw/pitch/roll to matrix: http://planning.cs.uiuc.edu/node102.html
-    const alpha = yaw; // z-axis
-    const beta = pitch; // y-axis
-    const gamma = roll; // x-axis
+    const alpha = correctedYaw; // z-axis
+    const beta = correctedPitch; // y-axis
+    const gamma = correctedRoll; // x-axis
     const sinAlpha = Math.sin(alpha);
     const cosAlpha = Math.cos(alpha);
     const sinBeta = Math.sin(beta);
