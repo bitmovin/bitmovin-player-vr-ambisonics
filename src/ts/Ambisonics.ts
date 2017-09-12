@@ -110,7 +110,13 @@ export class Ambisonics {
   }
 
   private static isVrContent(player: bitmovin.PlayerAPI): boolean {
-    return player.getVRStatus().contentType !== 'none';
+    // We can't use this in ON_READY as the VR handler is not yet loaded in there.
+    // We also can't check player.vr namespace availability for the same reason.
+    // return player.getVRStatus().contentType !== 'none';
+
+    // As a workaround, we check the source config because the player treats every source as VR
+    // source when the vr property in the source is set.
+    return !!player.getConfig().source && !!player.getConfig().source.vr;
   }
 
   private static isAmbisonicTrack(audioTrack: AudioTrack): boolean {
