@@ -79,7 +79,7 @@
 
   var player = bitmovin.player('player');
 
-  var ambisonics = new bitmovin.player.vr.Ambisonics(player);
+  var ambisonics = new bitmovin.player.vr.Ambisonics(player, { yawOffset: Math.PI });
 
   player.setup(conf).then(function(player) {
     // Update the VR viewport direction 30 times a second (instead of the default 4 times)

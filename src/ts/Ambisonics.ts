@@ -26,6 +26,12 @@ export interface AmbisonicsConfig {
    * Default: true
    */
   autoSelectAmbisonicAudio?: boolean;
+  /**
+   * The offset around the y-axis in radians. Can be used to apply a rotation offset to adjust
+   * the audio to the video field.
+   * Default: 0
+   */
+  yawOffset?: number;
 }
 
 export class Ambisonics {
@@ -42,6 +48,7 @@ export class Ambisonics {
     this.config = config;
 
     this.config.autoSelectAmbisonicAudio = config.autoSelectAmbisonicAudio || true;
+    this.config.yawOffset = config.yawOffset || 0;
 
     player.addEventHandler(player.EVENT.ON_READY, this.onPlayerReady);
     player.addEventHandler(player.EVENT.ON_AUDIO_CHANGED, this.onPlayerAudioChanged);
@@ -149,7 +156,8 @@ export class Ambisonics {
     return null;
   }
 
-  private static getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection): number[] {
+  private static getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection,
+                                   config: AmbisonicsConfig): number[] {
     // Convert degrees to radians
     const degToRad = Math.PI / 180;
     const yaw = direction.yaw * degToRad;
@@ -159,7 +167,7 @@ export class Ambisonics {
     // The Bitmovin player assumes 0 degree at the left of the equirectangular projection,
     // while the source assumes it in the center, so we must correct our angles for the
     // Ambisonics audio to match the VR video viewport.
-    const correctedYaw = yaw + Math.PI;
+    const correctedYaw = yaw + config.yawOffset;
     const correctedPitch = pitch;
     const correctedRoll = roll;
 
@@ -206,6 +214,6 @@ export class Ambisonics {
 
   private onPlayerVrViewingDirectionChange = (event: VRViewingDirectionChangeEvent) => {
     console.log('VRViewingDirectionChange', event.direction);
-    this.foaRenderer.setRotationMatrix(Ambisonics.getRotationMatrix(event.direction));
+    this.foaRenderer.setRotationMatrix(Ambisonics.getRotationMatrix(event.direction, this.config));
   }
 }
