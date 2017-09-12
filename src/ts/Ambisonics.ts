@@ -1,7 +1,7 @@
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 import AudioTrack = bitmovin.PlayerAPI.AudioTrack;
 import AudioChangedEvent = bitmovin.PlayerAPI.AudioChangedEvent;
-import {FOARenderer, Omnitone, RenderingMode} from 'omnitone';
+import {FOARenderer, Omnitone} from 'omnitone';
 
 /**
  * Temporary type definition for the {@link bitmovin.PlayerAPI.AudioTrack.role} property.
@@ -105,7 +105,7 @@ export class Ambisonics {
       });
     } else {
       // Re-enable Ambisonics processing (in case it has been disabled earlier)
-      this.foaRenderer.setRenderingMode(RenderingMode.AMBISONIC);
+      this.foaRenderer.setRenderingMode('ambisonic');
     }
 
     this.player.addEventHandler(this.player.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE,
@@ -118,7 +118,7 @@ export class Ambisonics {
       this.onPlayerVrViewingDirectionChange);
 
     // Disable Ambisonics processing
-    this.foaRenderer.setRenderingMode(RenderingMode.BYPASS);
+    this.foaRenderer.setRenderingMode('bypass');
   }
 
   private static isVrContent(player: bitmovin.PlayerAPI): boolean {

@@ -11,11 +11,7 @@ declare module 'omnitone' {
     constructor(context: AudioContext);
   }
 
-  enum RenderingMode {
-    AMBISONIC = 'ambisonic',
-    BYPASS = 'bypass',
-    OFF = 'off',
-  }
+  type RenderingMode = 'ambisonic' | 'bypass' | 'off';
 
   interface FOARendererOptions {
     channelMap?: number[];
