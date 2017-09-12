@@ -42,7 +42,6 @@ var browserifyInstance = browserify({
 }).plugin(tsify);
 
 var catchBrowserifyErrors = false;
-var production = false;
 
 // Deletes the target directory containing all generated files
 gulp.task('clean', del.bind(null, [paths.target.html]));
@@ -92,14 +91,12 @@ gulp.task('browserify', function() {
   .pipe(buffer())
   .pipe(gulp.dest(paths.target.js));
 
-  if (production) {
-    // Minify JS
-    stream.pipe(sourcemaps.init({loadMaps: true}))
-    .pipe(uglify())
-    .pipe(rename({extname: '.min.js'}))
-    .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(paths.target.js));
-  }
+  // Minified production build
+  stream.pipe(sourcemaps.init({loadMaps: true}))
+  .pipe(uglify())
+  .pipe(rename({extname: '.min.js'}))
+  .pipe(sourcemaps.write('.'))
+  .pipe(gulp.dest(paths.target.js));
 
   return stream.pipe(browserSync.reload({stream: true}));
 });
@@ -114,11 +111,10 @@ gulp.task('build', function(callback) {
 });
 
 gulp.task('build-prod', function(callback) {
-  production = true;
   runSequence('lint', 'build', callback);
 });
 
-gulp.task('default', ['build']);
+gulp.task('default', ['build-prod']);
 
 // Watches files for changes and runs their build tasks
 gulp.task('watch', function() {
