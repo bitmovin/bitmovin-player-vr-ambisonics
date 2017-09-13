@@ -13,6 +13,7 @@
     <meta charset="UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400" rel="stylesheet">
 
     <!-- Bitmovin Player -->
     <script type="text/javascript" src="http://192.168.1.224:9000/bitdash-player/bitmovinplayer.js"></script>
@@ -25,6 +26,20 @@
     <script type="text/javascript" src="bitmovinplayer-vr-ambisonics.js"></script>
 
     <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            color: #fff;
+            font-weight: 300;
+
+            background: rgba(44, 131, 185, 1);
+            background: -moz-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: -webkit-gradient(left top, right top, color-stop(0%, rgba(44, 131, 185, 1)), color-stop(100%, rgba(30, 171, 227, 1)));
+            background: -webkit-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: -o-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: -ms-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: linear-gradient(to right, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#2c83b9', endColorstr='#1eabe3', GradientType=1);
+        }
         figure {
             margin: 0;
             padding: 0;
@@ -34,7 +49,12 @@
             text-align: center;
         }
         .container a {
-            color: white;
+            color: #97d9ef;
+            font-weight: 400;
+            text-decoration: none;
+        }
+        .container a:hover {
+            color: #fff;
         }
         .container h1 {
             margin-bottom: 22px;
@@ -50,6 +70,14 @@
             margin: 20px auto;
             box-shadow: 0 0 30px rgba(0,0,0,0.7);
         }
+
+        @media (min-width: 800px) {
+            .container {
+                width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
     </style>
 </head>
 <body>
@@ -58,14 +86,17 @@
         <div class="player-wrapper">
             <div id="player"></div>
         </div>
+        <div class="description">
+            <p>For more information about the bitmovin player, please have a look at our online <a href="https://bitmovin.com/support" target="_blank">Developer Section</a>.</p>
+        </div>
     </div>
 </div>
 <script type="text/javascript">
   var conf = {
     key: '89f6ed6c-ab0e-46c2-ac47-5665e60c3c41',
     source: {
-      title: 'Ambisonics Test Video',
-      description: 'A video that features an ambisonic audio track.',
+      title: 'Ambisonics Test VR Video',
+      description: 'A 360° video that features a stereo and an ambisonic audio track.',
       dash: 'https://bitmovin-a.akamaihd.net/content/ambisonic/asset1/dash/manifest.mpd',
       hls: 'https://bitmovin-a.akamaihd.net/content/ambisonic/asset1/hls/master.m3u8',
       vr: {
