@@ -217,5 +217,5 @@ export class Ambisonics {
   private onPlayerVrViewingDirectionChange = (event: VRViewingDirectionChangeEvent) => {
     console.log('VRViewingDirectionChange', event.direction);
     this.foaRenderer.setRotationMatrix(Ambisonics.getRotationMatrix(event.direction, this.config));
-  }
+  };
 }
