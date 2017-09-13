@@ -128,6 +128,7 @@ export class Ambisonics {
 
     // As a workaround, we check the source config because the player treats every source as VR
     // source when the vr property in the source is set.
+    // TODO use method above once ON_READY is fixed
     return !!player.getConfig().source && !!player.getConfig().source.vr;
   }
 
