@@ -1,24 +1,9 @@
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 import AudioTrack = bitmovin.PlayerAPI.AudioTrack;
 import AudioChangedEvent = bitmovin.PlayerAPI.AudioChangedEvent;
+import MediaTrackRole = bitmovin.PlayerAPI.MediaTrackRole;
+import VRViewingDirectionChangeEvent = bitmovin.PlayerAPI.VRViewingDirectionChangeEvent;
 import {FOARenderer, Omnitone} from 'omnitone';
-
-/**
- * Temporary type definition for the {@link bitmovin.PlayerAPI.AudioTrack.role} property.
- * TODO remove once bitmovin-player-ui types have been updated with the role property
- */
-interface AudioTrackRole {
-  schemeIdUri: string;
-  value: string;
-}
-
-/**
- * Temporary type definition for the {@link bitmovin.PlayerAPI.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE} event object.
- * TODO remove once bitmovin-player-ui types have been updated with the event
- */
-interface VRViewingDirectionChangeEvent extends PlayerEvent {
-  direction: bitmovin.PlayerAPI.VR.ViewingDirection;
-}
 
 export interface AmbisonicsConfig {
   /**
@@ -133,7 +118,7 @@ export class Ambisonics {
   }
 
   private static isAmbisonicTrack(audioTrack: AudioTrack): boolean {
-    const audioTrackRoles: AudioTrackRole[] = (<any>audioTrack).role;
+    const audioTrackRoles: MediaTrackRole[] = (<any>audioTrack).role;
 
     if (audioTrackRoles && audioTrackRoles.length > 0) {
       for (let audioTrackRole of audioTrackRoles) {
