@@ -1,3 +1,4 @@
+/// <reference path='../../node_modules/bitmovin-player-ui/src/ts/player.d.ts' />
 import PlayerEvent = bitmovin.PlayerAPI.PlayerEvent;
 import AudioTrack = bitmovin.PlayerAPI.AudioTrack;
 import AudioChangedEvent = bitmovin.PlayerAPI.AudioChangedEvent;

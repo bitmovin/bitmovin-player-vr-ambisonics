@@ -1,4 +1,3 @@
-/// <reference path='../../node_modules/bitmovin-player-ui/src/ts/player.d.ts' />
 /// <reference path='Omnitone.d.ts' />
 
 import {Ambisonics} from './Ambisonics';
