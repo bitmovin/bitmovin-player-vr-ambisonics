@@ -3,7 +3,8 @@ import AudioTrack = bitmovin.PlayerAPI.AudioTrack;
 import AudioChangedEvent = bitmovin.PlayerAPI.AudioChangedEvent;
 import MediaTrackRole = bitmovin.PlayerAPI.MediaTrackRole;
 import VRViewingDirectionChangeEvent = bitmovin.PlayerAPI.VRViewingDirectionChangeEvent;
-import {FOARenderer, Omnitone} from 'omnitone';
+import {AmbisonicsImplementation} from './AmbisonicsImplementation';
+import {OmnitoneFOARendererImplementation} from './OmnitoneFOARendererImplementation';
 
 export interface AmbisonicsConfig {
   /**
@@ -26,7 +27,8 @@ export class Ambisonics {
 
   private player: bitmovin.PlayerAPI;
   private config: AmbisonicsConfig;
-  private foaRenderer: FOARenderer;
+  private mediaElement: HTMLMediaElement;
+  private implementation: AmbisonicsImplementation;
 
   constructor(player: bitmovin.PlayerAPI, config: AmbisonicsConfig = {}) {
     this.player = player;
@@ -49,9 +51,12 @@ export class Ambisonics {
     this.disable();
     this.player.removeEventHandler(this.player.EVENT.ON_READY, this.onPlayerReady);
     this.player.removeEventHandler(this.player.EVENT.ON_AUDIO_CHANGED, this.onPlayerAudioChanged);
+    this.implementation.release();
   }
 
   private initialize() {
+    this.mediaElement = (<any>this.player).getVideoElement();
+
     if (Ambisonics.isVrContent(this.player) && this.config.autoSelectAmbisonicAudio) {
       const audioTracks = this.player.getAvailableAudio();
       const ambisonicAudioTrack = Ambisonics.findFirstAmbisonicTrack(audioTracks);
@@ -72,25 +77,12 @@ export class Ambisonics {
     }
 
     // Create the FOARenderer only the first time it is required, then we reuse it
-    if (!this.foaRenderer) {
-      const audioContext = new AudioContext();
-      const audioSource = audioContext.createMediaElementSource((<any>this.player).getVideoElement());
-
-      this.foaRenderer = Omnitone.createFOARenderer(audioContext, {
-        HRIRUrl: 'https://cdn.rawgit.com/GoogleChrome/omnitone/962089ca/build/resources/sh_hrir_o_1.wav',
-        // Remap channels from FuMa ordering (W,X,Y,Z) to ACN
-        channelMap: [0, 3, 1, 2],
-      });
-
-      this.foaRenderer.initialize().then(() => {
-        audioSource.connect(this.foaRenderer.input);
-        this.foaRenderer.output.connect(audioContext.destination);
-      }, (onInitializationError) => {
-        console.error(onInitializationError);
-      });
+    if (!this.implementation) {
+      this.implementation = new OmnitoneFOARendererImplementation();
+      this.implementation.start(this.mediaElement);
     } else {
       // Re-enable Ambisonics processing (in case it has been disabled earlier)
-      this.foaRenderer.setRenderingMode('ambisonic');
+      this.implementation.enable();
     }
 
     this.player.addEventHandler(this.player.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE,
@@ -103,7 +95,7 @@ export class Ambisonics {
       this.onPlayerVrViewingDirectionChange);
 
     // Disable Ambisonics processing
-    this.foaRenderer.setRenderingMode('bypass');
+    this.implementation.disable();
   }
 
   private static isVrContent(player: bitmovin.PlayerAPI): boolean {
@@ -201,6 +193,7 @@ export class Ambisonics {
 
   private onPlayerVrViewingDirectionChange = (event: VRViewingDirectionChangeEvent) => {
     console.log('VRViewingDirectionChange', event.direction);
-    this.foaRenderer.setRotationMatrix(Ambisonics.getRotationMatrix(event.direction, this.config));
+    const rotationMatrix = Ambisonics.getRotationMatrix(event.direction, this.config);
+    this.implementation.update(rotationMatrix);
   };
 }
