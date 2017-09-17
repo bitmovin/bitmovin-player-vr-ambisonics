@@ -5,6 +5,10 @@ declare module 'omnitone' {
 
   class FOADecoder {
     constructor(context: AudioContext, videoElement: HTMLMediaElement, options: object);
+    initialize(): Promise<void>;
+    setMode(renderingMode: RenderingMode): void;
+    setRotationMatrix(matrix: number[]): void;
+    setRotationMatrixFromCamera(cameraMatrix: object): void;
   }
 
   class FOAPhaseMatchedFilter {
