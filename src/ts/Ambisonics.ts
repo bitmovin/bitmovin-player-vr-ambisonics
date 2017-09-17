@@ -29,6 +29,7 @@ export class Ambisonics {
   private player: bitmovin.PlayerAPI;
   private config: AmbisonicsConfig;
   private mediaElement: HTMLMediaElement;
+  private audioContext: AudioContext;
   private implementation: AmbisonicsImplementation;
   private enabled: boolean;
 
@@ -57,6 +58,7 @@ export class Ambisonics {
   }
 
   private initialize() {
+    this.audioContext = new AudioContext();
     this.mediaElement = (<any>this.player).getVideoElement();
 
     if (Ambisonics.isVrContent(this.player) && this.config.autoSelectAmbisonicAudio) {
@@ -86,7 +88,7 @@ export class Ambisonics {
     // Create the FOARenderer only the first time it is required, then we reuse it
     if (!this.implementation) {
       this.implementation = new OmnitoneFOARendererImplementation();
-      this.implementation.start(this.mediaElement).catch(error => console.error(error));
+      this.implementation.start(this.audioContext, this.mediaElement).catch(error => console.error(error));
     } else {
       // Re-enable Ambisonics processing (in case it has been disabled earlier)
       this.implementation.enable();

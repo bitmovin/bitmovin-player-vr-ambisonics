@@ -6,8 +6,8 @@ export class OmnitoneFOADecoderImplementation implements AmbisonicsImplementatio
   private audioContext: AudioContext;
   private foaDecoder: FOADecoder;
 
-  start(mediaElement: HTMLMediaElement): Promise<void> {
-    this.audioContext = new AudioContext();
+  start(context: AudioContext, mediaElement: HTMLMediaElement): Promise<void> {
+    this.audioContext = context;
 
     this.foaDecoder = Omnitone.createFOADecoder(this.audioContext, mediaElement, {
       channelMap: [0, 3, 1, 2],
@@ -18,7 +18,7 @@ export class OmnitoneFOADecoderImplementation implements AmbisonicsImplementatio
 
   release(): Promise<void> {
     this.disable();
-    return this.audioContext.close();
+    return Promise.resolve();
   }
 
   enable(): void {

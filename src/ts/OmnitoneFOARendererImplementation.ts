@@ -7,8 +7,8 @@ export class OmnitoneFOARendererImplementation implements AmbisonicsImplementati
   private audioSource: MediaElementAudioSourceNode;
   private foaRenderer: FOARenderer;
 
-  start(mediaElement: HTMLMediaElement): Promise<void> {
-    this.audioContext = new AudioContext();
+  start(context: AudioContext, mediaElement: HTMLMediaElement): Promise<void> {
+    this.audioContext = context;
     this.audioSource = this.audioContext.createMediaElementSource(mediaElement);
 
     this.foaRenderer = Omnitone.createFOARenderer(this.audioContext, {
@@ -27,7 +27,8 @@ export class OmnitoneFOARendererImplementation implements AmbisonicsImplementati
     this.disable();
     this.audioSource.disconnect(this.foaRenderer.input);
     this.foaRenderer.output.disconnect(this.audioContext.destination);
-    return this.audioContext.close();
+    this.audioSource.connect(this.audioContext.destination);
+    return Promise.resolve();
   }
 
   enable(): void {
