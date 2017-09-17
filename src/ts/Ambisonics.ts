@@ -30,6 +30,7 @@ export class Ambisonics {
   private config: AmbisonicsConfig;
   private mediaElement: HTMLMediaElement;
   private implementation: AmbisonicsImplementation;
+  private enabled: boolean;
 
   constructor(player: bitmovin.PlayerAPI, config: AmbisonicsConfig = {}) {
     this.player = player;
@@ -77,6 +78,11 @@ export class Ambisonics {
       return;
     }
 
+    if (this.enabled) {
+      // Don't do anything if already enabled
+      return;
+    }
+
     // Create the FOARenderer only the first time it is required, then we reuse it
     if (!this.implementation) {
       this.implementation = new OmnitoneFOARendererImplementation();
@@ -88,15 +94,24 @@ export class Ambisonics {
 
     this.player.addEventHandler(this.player.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE,
       this.onPlayerVrViewingDirectionChange);
+
+    this.enabled = true;
   }
 
   private disable(): void {
+    if (!this.enabled) {
+      // Don't do anything if already disabled
+      return;
+    }
+
     // Disable rotation handling
     this.player.removeEventHandler(this.player.EVENT.ON_VR_VIEWING_DIRECTION_CHANGE,
       this.onPlayerVrViewingDirectionChange);
 
     // Disable Ambisonics processing
     this.implementation.disable();
+
+    this.enabled = false;
   }
 
   private static isVrContent(player: bitmovin.PlayerAPI): boolean {
