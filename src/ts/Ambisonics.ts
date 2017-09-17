@@ -80,7 +80,7 @@ export class Ambisonics {
     // Create the FOARenderer only the first time it is required, then we reuse it
     if (!this.implementation) {
       this.implementation = new OmnitoneFOARendererImplementation();
-      this.implementation.start(this.mediaElement);
+      this.implementation.start(this.mediaElement).catch(error => console.error(error));
     } else {
       // Re-enable Ambisonics processing (in case it has been disabled earlier)
       this.implementation.enable();

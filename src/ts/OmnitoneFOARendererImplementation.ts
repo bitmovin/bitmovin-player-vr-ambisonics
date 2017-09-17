@@ -20,8 +20,6 @@ export class OmnitoneFOARendererImplementation implements AmbisonicsImplementati
     return this.foaRenderer.initialize().then(() => {
       this.audioSource.connect(this.foaRenderer.input);
       this.foaRenderer.output.connect(this.audioContext.destination);
-    }, (onInitializationError) => {
-      console.error(onInitializationError);
     });
   }
 
