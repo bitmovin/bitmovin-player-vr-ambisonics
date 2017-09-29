@@ -132,52 +132,67 @@
       const videoElement = document.createElement('video');
       videoElement.src = filename;
       //videoElement.controls = true;
-      document.body.appendChild(videoElement);
-      const audioContext = new AudioContext();
-      const sourceNode = audioContext.createMediaElementSource(videoElement);
-      sourceNode.channelInterpretation = 'discrete';
-      sourceNode.channelCountMode = 'max';
 
-      const channelCountFromFilename = Number(filename.split('ch')[0]);
-
-      console.log('file', videoElement.src);
-      console.log('channels', sourceNode.channelCount, 'fromFilename', channelCountFromFilename);
-
-      let splitterNode = audioContext.createChannelSplitter(channelCountFromFilename);
-      sourceNode.connect(splitterNode);
-
+      let audioContext;
+      let sourceNode;
       let analyserNodes = [];
-      for (let ch = 0; ch < channelCountFromFilename; ch++) {
-        let analyserNode = audioContext.createAnalyser();
-        splitterNode.connect(analyserNode, ch);
-        analyserNode.fftSize = 2048;
-        analyserNode.smoothingTimeConstant = 0;
-        analyserNodes.push(analyserNode);
-      }
+
+      const init = () => {
+        audioContext = new AudioContext();
+        sourceNode = audioContext.createMediaElementSource(videoElement);
+        sourceNode.channelInterpretation = 'discrete';
+        sourceNode.channelCountMode = 'max';
+
+        const channelCountFromFilename = Number(filename.split('ch')[0]);
+
+        console.log('file', videoElement.src);
+        console.log('channels', sourceNode.channelCount, 'fromFilename', channelCountFromFilename);
+
+        let splitterNode = audioContext.createChannelSplitter(channelCountFromFilename);
+        sourceNode.connect(splitterNode);
+
+        for (let ch = 0; ch < channelCountFromFilename; ch++) {
+          let analyserNode = audioContext.createAnalyser();
+          splitterNode.connect(analyserNode, ch);
+          analyserNode.fftSize = 2048;
+          analyserNode.smoothingTimeConstant = 0;
+          analyserNodes.push(analyserNode);
+        }
+      };
 
       const teardown = () => {
         videoElement.parentElement.removeChild(videoElement);
         return audioContext.close();
-      }
+      };
 
-      videoElement.play().then(() => {
-        setTimeout(() => {
-          try {
-            const channelCountAndOrder = analyse(analyserNodes, audioContext.sampleRate);
-            videoElement.pause();
-            teardown().then(() => {
-              resolve(channelCountAndOrder);
-            });
-          } catch (error) {
-            reject(error);
-          }
-        }, 100);
-      }).catch((error) => {
-        return teardown().then(() => {
-          console.error('playback unsupported', filename, error);
-          resolve([]);
+      videoElement.addEventListener('canplay', (e) => {
+        init();
+
+        videoElement.play().then(() => {
+          setTimeout(() => {
+            try {
+              const channelCountAndOrder = analyse(analyserNodes, audioContext.sampleRate);
+              videoElement.pause();
+              teardown().then(() => {
+                resolve(channelCountAndOrder);
+              });
+            } catch (error) {
+              reject(error);
+            }
+          }, 100);
+        }).catch((error) => {
+          return teardown().then(() => {
+            console.error('playback unsupported', filename, error);
+            resolve([]);
+          });
         });
       });
+
+      videoElement.addEventListener('error', (e) => {
+        console.error('video element error', e);
+        resolve([]);
+      });
+      document.body.appendChild(videoElement);
     });
   }
 
