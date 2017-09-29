@@ -112,15 +112,15 @@
     // contains the channel order; the count is the array length
     const channelCountAndOrder = [];
 
-    analyserNodes.forEach(analyserNode => {
+    analyserNodes.forEach((analyserNode, index) => {
       const dataArray = new Float32Array(analyserNode.frequencyBinCount);
       analyserNode.getFloatFrequencyData(dataArray);
       const maxIndex = dataArray.indexOf(Math.max(...dataArray));
       const maxFreq = sR / 2 / analyserNode.frequencyBinCount * maxIndex;
-      console.log('sr / maxIndex / freqAtMaxIndex', sR, maxIndex, maxFreq);
       const normalizedFreq = Math.round(maxFreq / 100) * 100;
       const estimatedChannelNum = normalizedFreq / 100 - 1;
-      console.log('normalized freq / estimated channel num', normalizedFreq, estimatedChannelNum);
+      console.log(index + ' sr / maxIndex / freqAtMaxIndex / normalized freq / estimated channel num',
+        sR, maxIndex, maxFreq, normalizedFreq, estimatedChannelNum);
 
       channelCountAndOrder.push(estimatedChannelNum);
     });
@@ -171,7 +171,6 @@
           let analyserNode = audioContext.createAnalyser();
           splitterNode.connect(analyserNode, ch);
           analyserNode.fftSize = 2048;
-          analyserNode.smoothingTimeConstant = 0;
           analyserNodes.push(analyserNode);
         }
       };
