@@ -119,22 +119,52 @@
   // ch 0 = 100 Hz, ch 1 = 200 Hz, etc...
   function analyse(analyserNodes, sR) {
     // contains the channel order; the count is the array length
-    const channelCountAndOrder = [];
+    let channelCountAndOrder;
 
-    analyserNodes.forEach((analyserNode, index) => {
-      const spectrum = new Float32Array(analyserNode.frequencyBinCount);
-      analyserNode.getFloatFrequencyData(spectrum);
-      const maxIndex = spectrum.indexOf(Math.max(...spectrum));
-      const maxFreq = sR / 2 / analyserNode.frequencyBinCount * maxIndex;
-      const normalizedFreq = Math.round(maxFreq / 100) * 100;
-      const estimatedChannelNum = normalizedFreq / 100 - 1;
-      console.log(index + ' sr / maxIndex / freqAtMaxIndex / normalized freq / estimated channel num',
-        sR, maxIndex, maxFreq, normalizedFreq, estimatedChannelNum);
+    const innerAnalyse = () => {
+      channelCountAndOrder = [];
 
-      channelCountAndOrder.push(estimatedChannelNum);
+        for (let i = 0; i < analyserNodes.length; i++) {
+          const analyserNode = analyserNodes[i];
+          const spectrum = new Float32Array(analyserNode.frequencyBinCount);
+          analyserNode.getFloatFrequencyData(spectrum);
+
+          if(spectrum[0] === -Infinity) {
+            // Audio hasn't been analysed yet, repeat analysis later
+            return false;
+          }
+
+          const maxIndex = spectrum.indexOf(Math.max(...spectrum));
+          const maxFreq = sR / 2 / analyserNode.frequencyBinCount * maxIndex;
+          const normalizedFreq = Math.round(maxFreq / 100) * 100;
+          const estimatedChannelNum = normalizedFreq / 100 - 1;
+          console.log(i + ' sr / maxIndex / freqAtMaxIndex / normalized freq / estimated channel num',
+            sR, maxIndex, maxFreq, normalizedFreq, estimatedChannelNum);
+
+          channelCountAndOrder.push(estimatedChannelNum);
+        }
+
+      return true;
+    };
+
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if(innerAnalyse()) {
+          resolve(channelCountAndOrder);
+        } else {
+          setTimeout(() => {
+            if(innerAnalyse()) {
+              resolve(channelCountAndOrder);
+            } else {
+              setTimeout(() => {
+                innerAnalyse();
+                resolve(channelCountAndOrder);
+              }, 50);
+            }
+          }, 50);
+        }
+      }, 100);
     });
-
-    return channelCountAndOrder;
   }
 
   function analyseFile(filename) {
@@ -197,18 +227,16 @@
       loadFile(filename).then(buffer => {
         sourceNode.buffer = buffer;
         sourceNode.start(0);
-      }).then(() => {
-        setTimeout(() => {
-          try {
-            const channelCountAndOrder = analyse(analyserNodes, audioContext.sampleRate);
-            teardown().then(() => {
-              resolve(channelCountAndOrder);
-            });
-          } catch (error) {
-            reject(error);
-          }
-        }, 150);
-      }).catch((error) => {
+      })
+      .then(() => {
+        return analyse(analyserNodes, audioContext.sampleRate);
+      })
+      .then(channelCountAndOrder => {
+        teardown().then(() => {
+          resolve(channelCountAndOrder);
+        });
+      })
+      .catch((error) => {
         return teardown().then(() => {
           reject(error);
         });
