@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<!--
+*
+* Copyright (C) 2017, bitmovin GmbH, All Rights Reserved
+*
+* This source code and its use and distribution, is subject to the terms
+* and conditions of the applicable license agreement.
+*
+-->
+<html lang="en">
+<head>
+    <title>Browser Audio Channels Test</title>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400" rel="stylesheet">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            color: #fff;
+            font-weight: 300;
+
+            background: rgba(44, 131, 185, 1);
+            background: -moz-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: -webkit-gradient(left top, right top, color-stop(0%, rgba(44, 131, 185, 1)), color-stop(100%, rgba(30, 171, 227, 1)));
+            background: -webkit-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: -o-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: -ms-linear-gradient(left, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            background: linear-gradient(to right, rgba(44, 131, 185, 1) 0%, rgba(30, 171, 227, 1) 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#2c83b9', endColorstr='#1eabe3', GradientType=1);
+        }
+        figure {
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            color: white;
+            text-align: center;
+        }
+        .container a {
+            color: #97d9ef;
+            font-weight: 400;
+            text-decoration: none;
+        }
+        .container a:hover {
+            color: #fff;
+        }
+        .container h1 {
+            margin-bottom: 22px;
+            line-height: 66px;
+        }
+        .container h2 {
+            font-weight: normal;
+            margin-bottom: 36px;
+            line-height: 26px;
+        }
+        .player-wrapper {
+            width: 95%;
+            margin: 20px auto;
+            box-shadow: 0 0 30px rgba(0,0,0,0.7);
+        }
+
+        @media (min-width: 800px) {
+            .container {
+                width: 800px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="content">
+        <div class="player-wrapper">
+            <table id="results">
+                <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Channels</th>
+                    <th>Channel Mapping</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="description">
+            <p>For more information about the bitmovin player, please have a look at our online <a href="https://bitmovin.com/support" target="_blank">Developer Section</a>.</p>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+  const extensions = ['.wav', '.aac', '.ogg', '-wav.mp4', '-aac.mp4', '-ogg.mp4'];
+  const filenames = [];
+  for (let ch = 1; ch <= 16; ch++) {
+    let filename = ch + 'ch';
+    extensions.forEach((ext) => {
+      filenames.push(filename + ext);
+    });
+  }
+  console.log(filenames);
+
+  function analyse(analyserNodes, sR) {
+    // contains the channel order; the count is the array length
+    const channelCountAndOrder = [];
+
+    analyserNodes.forEach(analyserNode => {
+      const dataArray = new Float32Array(analyserNode.frequencyBinCount);
+      analyserNode.getFloatFrequencyData(dataArray);
+      console.log(dataArray);
+      const maxIndex = dataArray.indexOf(Math.max(...dataArray));
+      console.log('sr', sR);
+      console.log('max index', maxIndex);
+      const maxFreq = sR / 2 / analyserNode.frequencyBinCount * maxIndex;
+      console.log('max freq', maxFreq);
+      const normalizedFreq = Math.round(maxFreq / 100) * 100;
+      const estimatedChannelNum = normalizedFreq / 100;
+      console.log('normalized freq', normalizedFreq);
+      console.log('estimated channel num', estimatedChannelNum);
+
+      channelCountAndOrder.push(estimatedChannelNum);
+    });
+
+    return channelCountAndOrder;
+  }
+
+  function analyseFile(filename) {
+    return new Promise((resolve, reject) => {
+      const videoElement = document.createElement('video');
+      videoElement.src = filename;
+      //videoElement.controls = true;
+      document.body.appendChild(videoElement);
+      const audioContext = new AudioContext();
+      const sourceNode = audioContext.createMediaElementSource(videoElement);
+      sourceNode.channelInterpretation = 'discrete';
+      sourceNode.channelCountMode = 'max';
+
+      console.log('file', videoElement.src);
+      console.log('channels', sourceNode.channelCount);
+
+      let splitterNode = audioContext.createChannelSplitter(sourceNode.channelCount);
+      sourceNode.connect(splitterNode);
+
+      let analyserNodes = [];
+      for (let ch = 0; ch < sourceNode.channelCount; ch++) {
+        let analyserNode = audioContext.createAnalyser();
+        splitterNode.connect(analyserNode, ch);
+        analyserNode.fftSize = 2048;
+        analyserNode.smoothingTimeConstant = 0;
+        analyserNodes.push(analyserNode);
+      }
+
+      const teardown = () => {
+        videoElement.parentElement.removeChild(videoElement);
+        return audioContext.close();
+      }
+
+      videoElement.play().then(() => {
+        setTimeout(() => {
+          try {
+            const channelCountAndOrder = analyse(analyserNodes, audioContext.sampleRate);
+            videoElement.pause();
+            teardown().then(() => {
+              resolve(channelCountAndOrder);
+            });
+          } catch (error) {
+            reject(error);
+          }
+        }, 100);
+      }).catch((error) => {
+        return teardown().then(() => {
+          console.error('playback unsupported', filename, error);
+          resolve([]);
+        });
+      });
+    });
+  }
+
+  // Test files one by one
+  let analysisChain = Promise.resolve();
+  filenames.forEach(filename => {
+    try {
+      analysisChain = analysisChain.then(() => {
+        return analyseFile(filename).then(channelCountAndOrder => {
+          console.log('result: ' + channelCountAndOrder.length + ' channels, mapping: ' + channelCountAndOrder);
+          $('#results > tbody').append($(`
+          <tr>
+            <th>${filename}</th>
+            <td>${channelCountAndOrder.length}</td>
+            <td>${channelCountAndOrder}</td>
+          </tr>
+        `));
+        });
+      }).catch(error => {
+        console.error('error testing file ', filename, error);
+      });
+    } catch (error) {
+      console.error('error testing file ', filename, error);
+    }
+  })
+</script>
+</body>
+</html>
