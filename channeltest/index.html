@@ -69,6 +69,10 @@
                 margin-right: auto;
             }
         }
+
+        #results {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -102,6 +106,8 @@
   }
   console.log(filenames);
 
+  // Takes one sample from each channels, determines the peak frequency bin, and infers the channel number from it
+  // ch 0 = 100 Hz, ch 1 = 200 Hz, etc...
   function analyse(analyserNodes, sR) {
     // contains the channel order; the count is the array length
     const channelCountAndOrder = [];
@@ -109,16 +115,12 @@
     analyserNodes.forEach(analyserNode => {
       const dataArray = new Float32Array(analyserNode.frequencyBinCount);
       analyserNode.getFloatFrequencyData(dataArray);
-      console.log(dataArray);
       const maxIndex = dataArray.indexOf(Math.max(...dataArray));
-      console.log('sr', sR);
-      console.log('max index', maxIndex);
       const maxFreq = sR / 2 / analyserNode.frequencyBinCount * maxIndex;
-      console.log('max freq', maxFreq);
+      console.log('sr / maxIndex / freqAtMaxIndex', sR, maxIndex, maxFreq);
       const normalizedFreq = Math.round(maxFreq / 100) * 100;
-      const estimatedChannelNum = normalizedFreq / 100;
-      console.log('normalized freq', normalizedFreq);
-      console.log('estimated channel num', estimatedChannelNum);
+      const estimatedChannelNum = normalizedFreq / 100 - 1;
+      console.log('normalized freq / estimated channel num', normalizedFreq, estimatedChannelNum);
 
       channelCountAndOrder.push(estimatedChannelNum);
     });
