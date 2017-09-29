@@ -113,9 +113,9 @@
     const channelCountAndOrder = [];
 
     analyserNodes.forEach((analyserNode, index) => {
-      const dataArray = new Float32Array(analyserNode.frequencyBinCount);
-      analyserNode.getFloatFrequencyData(dataArray);
-      const maxIndex = dataArray.indexOf(Math.max(...dataArray));
+      const spectrum = new Float32Array(analyserNode.frequencyBinCount);
+      analyserNode.getFloatFrequencyData(spectrum);
+      const maxIndex = spectrum.indexOf(Math.max(...spectrum));
       const maxFreq = sR / 2 / analyserNode.frequencyBinCount * maxIndex;
       const normalizedFreq = Math.round(maxFreq / 100) * 100;
       const estimatedChannelNum = normalizedFreq / 100 - 1;
