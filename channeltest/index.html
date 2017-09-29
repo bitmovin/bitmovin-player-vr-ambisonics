@@ -209,30 +209,26 @@
   // Test files one by one
   let analysisChain = Promise.resolve();
   filenames.forEach(filename => {
-    try {
-      analysisChain = analysisChain.then(() => {
-        return analyseFile(filename).then(channelCountAndOrder => {
-          console.log('result: ' + channelCountAndOrder.length + ' channels, mapping: ' + channelCountAndOrder);
-          $('#results > tbody').append($(`
+    analysisChain = analysisChain.then(() => {
+      return analyseFile(filename).then(channelCountAndOrder => {
+        console.log('result: ' + channelCountAndOrder.length + ' channels, mapping: ' + channelCountAndOrder);
+        $('#results > tbody').append($(`
           <tr>
             <th>${filename}</th>
             <td>${channelCountAndOrder.length}</td>
             <td>${channelCountAndOrder}</td>
           </tr>
         `));
-        });
-      }).catch(error => {
-        console.error('error testing file ', filename, error);
-        $('#results > tbody').append($(`
+      });
+    }).catch(error => {
+      console.error('error testing file ', filename, error);
+      $('#results > tbody').append($(`
           <tr>
             <th>${filename}</th>
             <td colspan="2"><i>${error}</i></td>
           </tr>
         `));
-      });
-    } catch (error) {
-      console.error('error testing file ', filename, error);
-    }
+    });
   })
 </script>
 </body>
