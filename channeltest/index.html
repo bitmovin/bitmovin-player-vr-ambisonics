@@ -129,21 +129,37 @@
   function analyseFile(filename) {
     return new Promise((resolve, reject) => {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
-      const videoElement = document.createElement('video');
-      videoElement.src = filename;
-      //videoElement.controls = true;
-
       let audioContext;
       let sourceNode;
       let analyserNodes = [];
 
+      const loadFile = (filename) => {
+        return new Promise((resolve, reject) => {
+          const request = new XMLHttpRequest();
+          request.open('GET', filename, true);
+          request.responseType = 'arraybuffer';
+          request.addEventListener('load', () => {
+            if (request.status === 404) {
+              reject('not found');
+            } else {
+              audioContext.decodeAudioData(request.response,
+                (buffer) => resolve(buffer),
+                () => reject('cannot decode'));
+            }
+          });
+          request.addEventListener('error', () => {
+            reject('xhr failed');
+          });
+          request.send();
+        });
+      };
+
       const init = () => {
         audioContext = new AudioContext();
-        sourceNode = audioContext.createMediaElementSource(videoElement);
+        sourceNode = audioContext.createBufferSource();
 
         const channelCountFromFilename = Number(filename.split('ch')[0]);
 
-        console.log('file', videoElement.src);
         console.log('channels', sourceNode.channelCount, 'fromFilename', channelCountFromFilename);
 
         let splitterNode = audioContext.createChannelSplitter(channelCountFromFilename);
@@ -159,7 +175,6 @@
       };
 
       const teardown = () => {
-        videoElement.parentElement.removeChild(videoElement);
         if (audioContext) {
           return audioContext.close();
         } else {
@@ -167,34 +182,27 @@
         }
       };
 
-      videoElement.addEventListener('canplay', (e) => {
-        init();
+      init();
 
-        videoElement.play().then(() => {
-          setTimeout(() => {
-            try {
-              const channelCountAndOrder = analyse(analyserNodes, audioContext.sampleRate);
-              videoElement.pause();
-              teardown().then(() => {
-                resolve(channelCountAndOrder);
-              });
-            } catch (error) {
-              reject(error);
-            }
-          }, 100);
-        }).catch((error) => {
-          return teardown().then(() => {
-            console.error('playback unsupported', filename, error);
-            resolve([]);
-          });
+      loadFile(filename).then(buffer => {
+        sourceNode.buffer = buffer;
+        sourceNode.start(0);
+      }).then(() => {
+        setTimeout(() => {
+          try {
+            const channelCountAndOrder = analyse(analyserNodes, audioContext.sampleRate);
+            teardown().then(() => {
+              resolve(channelCountAndOrder);
+            });
+          } catch (error) {
+            reject(error);
+          }
+        }, 100);
+      }).catch((error) => {
+        return teardown().then(() => {
+          reject(error);
         });
       });
-
-      videoElement.addEventListener('error', (e) => {
-        console.error('video element error', e);
-        teardown().then(() => resolve([]));
-      });
-      document.body.appendChild(videoElement);
     });
   }
 
@@ -215,6 +223,12 @@
         });
       }).catch(error => {
         console.error('error testing file ', filename, error);
+        $('#results > tbody').append($(`
+          <tr>
+            <th>${filename}</th>
+            <td colspan="2"><i>${error}</i></td>
+          </tr>
+        `));
       });
     } catch (error) {
       console.error('error testing file ', filename, error);
