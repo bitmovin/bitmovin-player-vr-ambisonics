@@ -137,14 +137,16 @@
       sourceNode.channelInterpretation = 'discrete';
       sourceNode.channelCountMode = 'max';
 
-      console.log('file', videoElement.src);
-      console.log('channels', sourceNode.channelCount);
+      const channelCountFromFilename = Number(filename.split('ch')[0]);
 
-      let splitterNode = audioContext.createChannelSplitter(sourceNode.channelCount);
+      console.log('file', videoElement.src);
+      console.log('channels', sourceNode.channelCount, 'fromFilename', channelCountFromFilename);
+
+      let splitterNode = audioContext.createChannelSplitter(channelCountFromFilename);
       sourceNode.connect(splitterNode);
 
       let analyserNodes = [];
-      for (let ch = 0; ch < sourceNode.channelCount; ch++) {
+      for (let ch = 0; ch < channelCountFromFilename; ch++) {
         let analyserNode = audioContext.createAnalyser();
         splitterNode.connect(analyserNode, ch);
         analyserNode.fftSize = 2048;
