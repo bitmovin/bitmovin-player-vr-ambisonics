@@ -1,13 +1,32 @@
 #!/bin/bash
 
-# first create individual c-channel wav files from 16ch file
-cmd="ffmpeg -i 16ch.wav "
-for i in {1..15}
+# delete all previous files
+rm *ch*
+
+# create the 16 channels
+for i in {1..16}
 do
-   ch=$((i-1))
-   cmd="${cmd} -map_channel 0.0.${ch}"
-   eval "$cmd ${i}ch.wav"
+  ffmpeg -f lavfi -i "sine=frequency=${i}00:sample_rate=48000:duration=10" -c:a pcm_s16le "16ch-${i}.wav"
 done
+
+# create multichannel files
+cp 16ch-1.wav 1ch.wav # the 1ch file doesn't need merging
+for i in {2..16}
+do
+  cmd="ffmpeg"
+  mapping=""
+  for ch in $(seq 1 $i)
+  do
+    ch0=$((ch-1))
+    cmd="${cmd} -i 16ch-${ch}.wav"
+    mapping="${mapping}[${ch0}:0]"
+  done
+  cmd="${cmd} -filter_complex \"${mapping} amerge=inputs=${i}\""
+  eval "$cmd ${i}ch.wav"
+done
+
+# delete channel source files
+rm 16ch-*.wav
 
 # remove empty wav files (of unsupported channel number)
 find . -type f -empty -delete
