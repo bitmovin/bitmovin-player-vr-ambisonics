@@ -128,6 +128,7 @@
 
   function analyseFile(filename) {
     return new Promise((resolve, reject) => {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
       const videoElement = document.createElement('video');
       videoElement.src = filename;
       //videoElement.controls = true;
