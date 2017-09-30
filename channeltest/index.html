@@ -260,12 +260,14 @@
       });
     }).catch(error => {
       console.error('error testing file ', filename, error);
-      $('#results > tbody').append($(`
+      if (error.indexOf('not found') === -1) {
+        $('#results > tbody').append($(`
           <tr>
             <th>${filename}</th>
             <td colspan="2"><i>${error}</i></td>
           </tr>
         `));
+      }
     });
   })
 </script>
