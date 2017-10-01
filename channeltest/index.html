@@ -115,6 +115,9 @@
   }
   console.log(filenames);
 
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  const audioContext = new AudioContext();
+
   // Takes one sample from each channels, determines the peak frequency bin, and infers the channel number from it
   // ch 0 = 100 Hz, ch 1 = 200 Hz, etc...
   function analyse(analyserNodes, sR) {
@@ -169,8 +172,6 @@
 
   function analyseFile(filename) {
     return new Promise((resolve, reject) => {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      let audioContext;
       let sourceNode;
       let analyserNodes = [];
 
@@ -196,7 +197,6 @@
       };
 
       const init = () => {
-        audioContext = new AudioContext();
         sourceNode = audioContext.createBufferSource();
 
         const channelCountFromFilename = Number(filename.split('ch')[0]);
@@ -215,11 +215,7 @@
       };
 
       const teardown = () => {
-        if (audioContext) {
-          return audioContext.close();
-        } else {
-          return Promise.resolve();
-        }
+        return Promise.resolve();
       };
 
       init();
