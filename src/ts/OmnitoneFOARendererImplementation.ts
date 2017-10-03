@@ -1,6 +1,10 @@
 import {AmbisonicsImplementation} from './AmbisonicsImplementation';
 import {FOARenderer, Omnitone} from 'omnitone';
 
+/**
+ * Implements Ambisonic decoding with Omnitone's FOARenderer
+ * https://github.com/GoogleChrome/omnitone
+ */
 export class OmnitoneFOARendererImplementation implements AmbisonicsImplementation {
 
   private audioContext: AudioContext;

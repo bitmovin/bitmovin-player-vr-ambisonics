@@ -1,6 +1,12 @@
 import {AmbisonicsImplementation} from './AmbisonicsImplementation';
 import {FOADecoder, Omnitone} from 'omnitone';
 
+/**
+ * Implements Ambisonic decoding with Omnitone's FOADecoder. This is just implemented for the sake of demonstrating
+ * that different renderers can be used through the same interface. The FOADecoder is deprecated and it's recommended
+ * to use FOARenderer instead.
+ * https://github.com/GoogleChrome/omnitone
+ */
 export class OmnitoneFOADecoderImplementation implements AmbisonicsImplementation {
 
   private audioContext: AudioContext;

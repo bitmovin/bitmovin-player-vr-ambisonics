@@ -153,6 +153,12 @@ export class Ambisonics {
     return null;
   }
 
+  /**
+   * Converts yaw/pitch/roll into a 3x3 rotation matrix.
+   * @param {bitmovin.PlayerAPI.VR.ViewingDirection} direction the viewing direction from the player
+   * @param {AmbisonicsConfig} config
+   * @return {number[]} 3x3 rotation matrix
+   */
   private static getRotationMatrix(direction: bitmovin.PlayerAPI.VR.ViewingDirection,
                                    config: AmbisonicsConfig): number[] {
     // Convert degrees to radians
