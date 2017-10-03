@@ -1,3 +1,5 @@
+/// <reference path='Omnitone.d.ts' />
+
 import {Ambisonics} from './Ambisonics';
 
 // Export Ambisonics integration to global namespace

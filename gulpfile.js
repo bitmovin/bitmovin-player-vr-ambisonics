@@ -19,6 +19,7 @@ var del = require('del');
 var runSequence = require('run-sequence');
 var browserSync = require('browser-sync');
 var merge = require('merge2');
+var nativeTslint = require('tslint');
 
 var paths = {
   source: {
@@ -28,8 +29,7 @@ var paths = {
   },
   target: {
     html: './dist',
-    js: './dist/js',
-    jsframework: './dist/js/framework',
+    js: './dist',
   }
 };
 
@@ -42,47 +42,19 @@ var browserifyInstance = browserify({
 }).plugin(tsify);
 
 var catchBrowserifyErrors = false;
-var production = false;
 
 // Deletes the target directory containing all generated files
 gulp.task('clean', del.bind(null, [paths.target.html]));
 
 // TypeScript linting
 gulp.task('lint-ts', function() {
+  // The program is required for type checking rules to work: https://palantir.github.io/tslint/usage/type-checking/
+  var program = nativeTslint.Linter.createProgram("./tsconfig.json");
+
   return gulp.src(paths.source.ts)
   .pipe(tslint({
     formatter: 'verbose',
-    configuration: {
-      rules: {
-        'class-name': true,
-        'comment-format': [true, 'check-space'],
-        'indent': [true, 'spaces'],
-        'no-duplicate-variable': true,
-        'no-eval': true,
-        'no-internal-module': true,
-        'no-trailing-whitespace': true,
-        'no-var-keyword': false,
-        'one-line': [true, 'check-open-brace', 'check-whitespace'],
-        'quotemark': [true, 'single'],
-        'semicolon': false,
-        'triple-equals': [true, 'allow-null-check'],
-        'typedef-whitespace': [true, {
-          'call-signature': 'nospace',
-          'index-signature': 'nospace',
-          'parameter': 'nospace',
-          'property-declaration': 'nospace',
-          'variable-declaration': 'nospace'
-        }],
-        'variable-name': [true, 'ban-keywords'],
-        'whitespace': [true,
-          'check-branch',
-          'check-decl',
-          'check-operator',
-          'check-separator',
-          'check-type'
-        ]
-      }
-    }
+    program: program,
   }))
   .pipe(tslint.report({
     // Print just the number of errors (instead of printing all errors again)
@@ -115,20 +87,18 @@ gulp.task('browserify', function() {
 
   // Compile output JS file
   var stream = browserifyBundle
-  .pipe(source('bitmovinplayer-analytics-conviva.js'))
+  .pipe(source('bitmovinplayer-vr-ambisonics.js'))
   .pipe(buffer())
   .pipe(gulp.dest(paths.target.js));
 
-  if (production) {
-    // Minify JS
-    stream.pipe(sourcemaps.init({loadMaps: true}))
-    .pipe(uglify())
-    .pipe(rename({extname: '.min.js'}))
-    .pipe(sourcemaps.write('.'))
-    .pipe(gulp.dest(paths.target.js));
-  }
+  // Minified production build
+  stream.pipe(sourcemaps.init({loadMaps: true}))
+  .pipe(uglify())
+  .pipe(rename({extname: '.min.js'}))
+  .pipe(sourcemaps.write('.'))
+  .pipe(gulp.dest(paths.target.js));
 
-  stream.pipe(browserSync.reload({stream: true}));
+  return stream.pipe(browserSync.reload({stream: true}));
 });
 
 // Builds the complete project from the sources into the target directory
@@ -141,11 +111,10 @@ gulp.task('build', function(callback) {
 });
 
 gulp.task('build-prod', function(callback) {
-  production = true;
   runSequence('lint', 'build', callback);
 });
 
-gulp.task('default', ['build']);
+gulp.task('default', ['build-prod']);
 
 // Watches files for changes and runs their build tasks
 gulp.task('watch', function() {
@@ -172,27 +141,11 @@ gulp.task('serve', function() {
       server: {
         baseDir: [paths.target.html],
         index: 'test.html',
-        routes: {
-          '/conviva': './conviva'
-        }
       }
     });
 
-    gulp.watch(paths.source.html, ['html']).on('change', browserSync.reload);
+    gulp.watch(paths.source.html, ['html']).on('change', function() { runSequence('html', browserSync.reload); });
     catchBrowserifyErrors = true;
     gulp.watch(paths.source.ts, ['browserify']);
   });
-});
-
-// Prepares the project for a npm release
-// After running this task, the project can be published to npm or installed from this folder.
-gulp.task('npm-prepare', ['build-prod'], function() {
-  // https://www.npmjs.com/package/gulp-typescript
-  var tsProject = ts.createProject('tsconfig.json');
-  var tsResult = gulp.src(paths.source.ts).pipe(tsProject());
-
-  return merge([
-    tsResult.dts.pipe(gulp.dest(paths.target.jsframework)),
-    tsResult.js.pipe(gulp.dest(paths.target.jsframework))
-  ]);
 });
