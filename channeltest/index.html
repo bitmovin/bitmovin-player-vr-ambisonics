@@ -73,6 +73,11 @@
         #results {
             width: 100%;
         }
+        .error {
+            color: red;
+            font-weight: bold;
+            background-color: white;
+        }
     </style>
 </head>
 <body>
@@ -91,6 +96,7 @@
             </table>
         </div>
         <div class="description">
+            <p class="error"></p>
             <p>
                 If this test is not working, make sure to generate the test audio files by executing
                 <code>createaudiofiles.sh</code> (needs FFmpeg) and serving all files, including this one,
@@ -116,6 +122,12 @@
   console.log(filenames);
 
   const AudioContext = window.AudioContext || window.webkitAudioContext;
+
+  if (!AudioContext) {
+    $('.description .error').html('Your browser does not support the Web Audio API');
+    throw 'dummy error to stop script execution';
+  }
+
   const audioContext = new AudioContext();
 
   // Takes one sample from each channels, determines the peak frequency bin, and infers the channel number from it
