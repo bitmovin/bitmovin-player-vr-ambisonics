@@ -2,7 +2,8 @@
 
 Integrates 1st order ambisonic audio to binaural stereo decoding/rendering support for 360/VR videos into the Bitmovin Player through the Web Audio API. This integration automatically selects an ambisonic audio track when a VR source is loaded (configurable) and renders ambisonic audio tracks automatically to binaural stereo output.
 
-[Try out the demo](https://demo.bitmovin.com/public/ambisonics/).
+ * [Try out the demo](https://demo.bitmovin.com/public/ambisonics/) (with headphones!)
+ * [Browser audio format / channels / channel order test page](https://demo.bitmovin.com/public/mgu/channeltest/)
 
 ## Getting Started
 
